@@ -1,0 +1,82 @@
+# network architecture
+# encoder related
+encoder: biencoder
+encoder_conf:
+    output_size: 256    # dimension of attention
+    attention_heads: 4
+    linear_units: 2048  # the number of units of position-wise feed forward
+    num_blocks: 6      # the number of encoder blocks
+    dropout_rate: 0.1
+    positional_dropout_rate: 0.1
+    attention_dropout_rate: 0.0
+    input_layer: embed # encoder architecture type
+    normalize_before: true
+    unit_vocab_size: 503
+    pretrained_unit_embed: null
+    roberta: null 
+    ft_mode: full
+    data: manifest/aishell3/500
+
+# decoder related
+decoder: transformer
+decoder_conf:
+    attention_heads: 4
+    linear_units: 2048
+    num_blocks: 6
+    dropout_rate: 0.1
+    positional_dropout_rate: 0.1
+    self_attention_dropout_rate: 0.0
+    src_attention_dropout_rate: 0.0
+
+# hybrid CTC/attention
+model_conf:
+    ctc_weight: 0.3
+    lsm_weight: 0.1     # label smoothing option
+    length_normalized_loss: false
+
+# minibatch related
+# batch_type: folded
+# batch_size: 8
+batch_type: numel
+batch_bins: 70000000
+
+# optimization related
+accum_grad: 1
+grad_clip: 5
+patience: 150
+max_epoch: 150
+val_scheduler_criterion:
+    - valid
+    - acc
+best_model_criterion:
+-   - valid
+    - acc
+    - max
+-   - valid
+    - cer_ctc
+    - min
+-   - valid
+    - cer
+    - min
+keep_nbest_models: 1
+
+# NoamLR is deprecated. Use WarmupLR.
+# The following is equivalent setting for NoamLR:
+#
+#    optim: adam
+#    optim_conf:
+#        lr: 10.
+#    scheduler: noamlr
+#    scheduler_conf:
+#        model_size: 256
+#        warmup_steps: 25000
+#
+optim: adam
+optim_conf:
+    lr: 0.001
+scheduler: warmuplr     # pytorch v1.1.0+ required
+scheduler_conf:
+    warmup_steps: 25000
+
+# train_dtype: float16
+use_amp: true
